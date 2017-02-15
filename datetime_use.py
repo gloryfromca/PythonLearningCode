@@ -1,0 +1,37 @@
+import re
+from datetime import datetime,timedelta,timezone
+now=datetime.now()
+print(now)
+print(type(now))
+dt=datetime(2015,6,19,20,22,21)
+print(dt)
+print(type(dt))
+print(dt.timestamp())
+print(datetime.fromtimestamp(dt.timestamp()))
+print(datetime.utcfromtimestamp(dt.timestamp()))#格林威治时间
+print(datetime.strptime('2015-6-1 18:12:22','%Y-%m-%d %H:%M:%S'))#格林威治时间
+print(datetime.strptime('2015-6-1 18:12:22','%Y-%m-%d %H:%M:%S').strftime('%a,%b,%Y,%H:%M'))
+print(datetime.now()+timedelta(days=1))
+print(datetime.now()+timedelta(minutes=1))
+print(datetime.now()+timedelta(seconds=1))
+print(datetime.utcnow())
+print(datetime.utcnow().replace(tzinfo=timezone.utc))
+utc_dt=datetime.utcnow().replace(tzinfo=timezone.utc)
+print(utc_dt.astimezone(timezone(timedelta(hours=8))))
+tokyo_dt=utc_dt.astimezone(timezone(timedelta(hours=9)))
+print(tokyo_dt)
+tokyo_dt2=utc_dt.astimezone(timezone(timedelta(hours=9)))
+print(tokyo_dt2)
+tokyo_dt2=tokyo_dt.astimezone(timezone(timedelta(hours=9)))
+#timezone(timedelta(hours=9))设置时区，就是后面的+08：00
+print(tokyo_dt2)
+now=datetime.now().replace(tzinfo=timezone(timedelta(hours=8)))
+# now=datetime.now().replace(tzinfo='+08:00')#error
+print(now)
+s=datetime.strptime('2015-6-1 18:12:22','%Y-%m-%d %H:%M:%S')
+a=re.split(r'[\+\:]','utc+08:00')
+print(a)
+s=s-timedelta(hours=int(a[1]))
+print(s)
+print(type(s))
+print(s.timestamp())

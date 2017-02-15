@@ -1,0 +1,11 @@
+import sqlite3
+con=sqlite3.connect('test.db')
+cursor=con.cursor()
+# cursor.execute('create table user(id varchar(20) primary key,name varchar(20))')
+cursor.execute('insert into user(id ,name) values(\'15\',\'michael\')')
+cursor.execute("insert into user(id ,name) values('14','john')")
+value=cursor.fetchall()
+print(value)
+cursor.close()
+con.commit()
+con.close()
