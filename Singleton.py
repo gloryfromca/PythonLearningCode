@@ -16,7 +16,7 @@ class Singleton(object):
             self._instance = self._decorated  
             return self._instance  
   
-    def __call__( self ):  #阻止实例化
+    def __call__( self ):  #阻止MyClass实例化,因为Singleton(MyClass)()被阻止了。
         raise TypeError( 'single instance allowed' ) 
 
     def MyClass_is_turned_to_Singleton_instance(self):
@@ -29,10 +29,12 @@ class MyClass(object):
     def __init__( self ):  
         print( 'created' )  
 
-print(MyClass)#调用装饰器Singleton的过程发生了初始化,MyClass==Singleton(MyClass)
-myClass1=MyClass.Instance()#这里进行了实例化
+print(MyClass)#调用装饰器Singleton的过程发生了初始化,MyClass=Singleton(MyClass)
 print("=========after init=============")
+myClass1=MyClass.Instance()
+print("=========myclass 2=============")
 myClass2=MyClass.Instance()
+print(myClass1)
 print(myClass2 is myClass1)
 myClass2=MyClass.MyClass_is_turned_to_Singleton_instance()
 # myClass3=MyClass() # raise TypeError( 'single instance allowed' )  
