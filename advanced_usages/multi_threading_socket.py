@@ -1,7 +1,7 @@
 import socket
 import hashlib
 import json
-
+import pandas as pd
 import threading
 import time
 from queue import Queue
@@ -33,7 +33,7 @@ def worker_def(customer_id):
     #每次建立socket
     socket_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     socket.setdefaulttimeout(1) 
-    socket_.connect(("177.68.81.15", 9593))#内网生产
+    socket_.connect(("114.68.833.22", 9515))#内网生产
     
     #时间模块的计算
     now_date, now_time = datetime.datetime.now().strftime('%Y%m%d,%H%M%S').split(',')
@@ -100,33 +100,79 @@ def get_pid_phone_by_customer_id(x):
     que1.put(t)
     return t
 
-#调用上面的生产者函数，直接返回一个对象
-test_user_data['personal_info'] = test_user_data['customer_id'].apply(lambda x:get_pid_phone_by_customer_id(x))
+#pandas apply调用上面的生产者函数，直接返回一个对象,同时该对象被加到queue中
+test_user_data = pd.DataFrame({'customer_id':['A100','A111', 'A212','A123']*25})
+test_user_data['personal_info'] = test_user_data['customer_id'][1:20].apply(lambda x:get_pid_phone_by_customer_id(x))
 
-#建立多线程准备多线程执行消费者函数
+#证明可以线程间共享资源1
+ssd=457
+#证明可以线程间共享资源2
+print('第一个get_pid_phone class:\n')
+get_pid_phone_instance = test_user_data['personal_info'][8]
+print(get_pid_phone_instance)
+try:
+    print(get_pid_phone_instance.result)
+except AttributeError as e:
+    print('开始并没有result属性！')
+
+#证明对象的共享可以修改属性
+class all():
+    def __init__(self,name):
+        self.name=name
+        self.num=1
+    def change(self,number):
+        self.number = number
+    def add(self,ss):
+        self.ss = ss
+s_class = all('zhanghui')
+
+#准备多线程执行消费者函数
 class consumer(threading.Thread):
-    def __init__(self, que1):
+    def __init__(self, que1, lock, s_class):
         threading.Thread.__init__(self)
         self.que1 = que1
+        self.lock = lock
+        self.s_class = s_class
     def run(self):
+        global ssd
         while self.que1.not_empty:#用这个，可能执行到后面的get的时候空掉了，然后被阻塞。所以后面的queue.get()要加block=False
             try:
                 term = self.que1.get(block=False)
                 term_result = worker_def(term.customer_id)
                 term.write_(term_result)
+#                 print(term)
 #                 print('=======')
 #                 print(term_result)
 #                 print(que1.qsize()) 
 #                 print(threading.current_thread().name)
 #                 print('=======')
-                self.que1.task_done()#必须有，用来说明当前取出的任务已经完成，队列长度会减少1
+                #证明可以线程间共享资源1
+                #print('=ssd=',ssd,'=ssd=')
+
+                #修改s_class的情况
+                self.lock.acquire()
+                self.s_class.num = self.s_class.num + 1
+                self.lock.release()
+                print('==s_class.num==',self.s_class.num,'==s_class.num==')
+                
+                #证明非明确共享的变量无法修改
+                self.lock.acquire()
+                ssd+=1
+                self.lock.release()
+                print('=ssd=',ssd,'=ssd=')
+    
+
+                #必须有，用来说明当前取出的任务已经完成，队列长度会减少1
+                self.que1.task_done()
             except Empty as e:
-                time.sleep(0.5) #等0.5秒防止慢速生产造成提前退出
+                time.sleep(0) #等0.5秒防止慢速生产造成提前退出
                 if self.que1.empty:
                     return 'all_done!'#等待0.5秒后queue仍然没有新的term直接退出
+#加锁
+lock = threading.Lock()
 
 #建立多线程，并将多线程放进list中
-ss= [consumer(que1) for i in range(20)]
+ss= [consumer(que1,lock,s_class) for i in range(5)]
 
 #逐个开启多线程
 for i in ss :
@@ -136,3 +182,13 @@ for i in ss :
 #主线程指的就是当前执行的这个脚本
 for i in ss :
     i.join()
+
+#证明可以线程间共享资源2
+print('第一个get_pid_phone class:\n')
+get_pid_phone_instance = test_user_data['personal_info'][8]
+print(get_pid_phone_instance)
+try:
+    print(get_pid_phone_instance.result)
+    print("主线程放到队列上的实例已经被修改！")
+except AttributeError as e:
+    print('最后并没有result属性！')
