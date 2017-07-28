@@ -1,59 +1,12 @@
-from numpy import NaN
-from pandas import DataFrame,Series
-import pandas as pd
-import numpy as np
+
 
 import time
 from datetime import date#输出日期
 from datetime import timedelta
 import datetime
 
-import math
-
-from jfdata.utilities.data_analysis import pid_analysis
-from jfdata.utilities.data_aquisition import Oracle, MySql
-
-
-import sqlalchemy 
-from sqlalchemy import create_engine, MetaData, select, String, Integer, BigInteger, Table,\
-Column, func, text, and_,or_,not_
-
-import os
-os.environ['NLS_LANG'] = 'SIMPLIFIED CHINESE_CHINA.UTF8'
-
-
-import warnings
-warnings.filterwarnings('ignore')
-from sqlalchemy import Table, create_engine, MetaData, Column, String, Integer, select, and_, func, case
-    
-from jfdata.datasource_configs import OracleProduction
-
-from sqlalchemy import create_engine
-from jfdata.utilities.publish import save_dataframe
-
-from helper import reset_tables,clear_tables,clear_schema,get_select,get_table,print_sql
-
-from sqlalchemy.orm import sessionmaker
-import cx_Oracle
-
-
 #当月、当天日期
 current_month, now_date, now_time = datetime.datetime.now().strftime('%Y%m,%Y%m%d,%H%M%S').split(',')
-#上月月末  
-last_month_end_day = (datetime.date.today().replace(day=1)- datetime.timedelta(1)).strftime('%Y%m%d')
-#上月1号  
-last_month_day1 = (datetime.date.today().replace(day=1) - datetime.timedelta(1)).replace(day=1).strftime('%Y%m%d') 
-#上个交易月
-last_month = (datetime.date.today().replace(day=1) - datetime.timedelta(1)).strftime('%Y%m') 
-
-pass_6000_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(6000)), '%Y%m%d')
-pass_365_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(365)), '%Y%m%d')
-pass_180_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(180)), '%Y%m%d')
-pass_120_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(120)), '%Y%m%d')
-pass_90_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(90)), '%Y%m%d')
-pass_60_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(60)), '%Y%m%d')
-pass_30_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(30)), '%Y%m%d')
-pass_45_date_str=datetime.datetime.strftime((datetime.datetime.now()-timedelta(45)), '%Y%m%d')
 
 
 
