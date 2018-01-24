@@ -1,6 +1,5 @@
 class Singleton(object):  
 
-
     def __init__( self, decorated ):  
         self._decorated = decorated  
         print(self._decorated)#<class '__main__.MyClass'>
@@ -13,7 +12,7 @@ class Singleton(object):
             print("aaa")
             return self._instance  
         except AttributeError:  
-            self._instance = self._decorated  
+            self._instance = self._decorated()  
             return self._instance  
   
     def __call__( self ):  #阻止MyClass实例化,因为Singleton(MyClass)()被阻止了。
@@ -36,5 +35,6 @@ print("=========myclass 2=============")
 myClass2=MyClass.Instance()
 print(myClass1)
 print(myClass2 is myClass1)
-myClass2=MyClass.MyClass_is_turned_to_Singleton_instance()
-# myClass3=MyClass() # raise TypeError( 'single instance allowed' )  
+MyClass.MyClass_is_turned_to_Singleton_instance()
+# raise TypeError( 'single instance allowed' )  
+# myClass3=MyClass() 
