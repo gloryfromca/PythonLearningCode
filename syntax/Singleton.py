@@ -1,3 +1,5 @@
+
+print("使用装饰器实现单例模式")
 class Singleton(object):  
 
     def __init__( self, decorated ):  
@@ -38,3 +40,37 @@ print(myClass2 is myClass1)
 MyClass.MyClass_is_turned_to_Singleton_instance()
 # raise TypeError( 'single instance allowed' )  
 # myClass3=MyClass() 
+
+print("使用元类实现单例模式")
+class SingleMeta(type):
+    def __init__(cls, name, bases, attrs):
+        cls._instance = None
+        #cls.__new__ is object.__new__
+        #it can't add parameters in it. 
+        __new__o = cls.__new__
+        
+        print('single meta init')
+        @staticmethod 
+        def __new__(cls, *names, **kwargs):
+            print('single meta new')
+            print(names)
+            print(kwargs)
+            if cls._instance:
+                return cls._instance
+            print("ass")
+            cls._instance = cv = __new__o(cls)
+            return cv
+        cls.__new__ = __new__
+class A(object, metaclass = SingleMeta):
+    def __init__(self, *args, **kwargs):
+        print("in A init")
+        print(args)
+        print(kwargs)
+        pass
+
+a1 = A()
+# a2's initial parameters will be discarded.
+a2 = A("2", "5")
+print(a1 == a2)
+
+
