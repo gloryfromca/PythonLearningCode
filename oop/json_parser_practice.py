@@ -1,3 +1,123 @@
+class StatusField(object):
+    """
+    some alias. 
+    """
+    failed = "failed"
+    succeed = "succeed" 
+    status = "status"
+    getNothingDefaultValue = "-999999"
+    
+class Result(object):
+    """
+    Result that store result and some info about it. 
+    """
+    def __init__(self, result, status, message=None):
+        self.result = result
+        self.status = status
+        self.message = message
+
+
+class InfoParser(object):
+    """
+    you can code different Parser for one Result.  
+    """
+    
+    @staticmethod
+    def PaymentInfoParser(paymentInfoList_Result):
+        previous_result = paymentInfoList_Result.result
+        previous_status = paymentInfoList_Result.status 
+        
+        if previous_status == StatusField.failed:
+            return Result({}, previous_status)
+        
+        return_value = {
+            "monthOfPayment":len(previous_result),
+        }
+        return Result(return_value, StatusField.succeed)
+    
+    @staticmethod
+    def BillInfoParser(billInfoList_Result):
+        previous_result = billInfoList_Result.result
+        previous_status = billInfoList_Result.status
+        
+        if previous_status == StatusField.failed:
+            return Result({}, previous_status)
+        
+        return_value = {
+                "monthOfBill":str(len(previous_result)),
+        }
+        return Result(return_value, StatusField.succeed) 
+    
+    @staticmethod
+    def AccountInfoParser(AccountInfo_Result):
+        previous_result = AccountInfo_Result.result
+        previous_status = AccountInfo_Result.status
+        
+        if previous_status == StatusField.failed:
+            return Result({}, previous_status)
+        
+        return_value =  {
+            "net_age":previous_result.get("net_age", StatusField.getNothingDefaultValue)
+        }
+        return Result(return_value, StatusField.succeed) 
+    
+    
+    @staticmethod
+    def CallInfoParser(CallInfoList_Result):
+        previous_result = CallInfoList_Result.result
+        previous_status = CallInfoList_Result.status
+        
+        if previous_status == StatusField.failed:
+            return Result({}, previous_status)
+        
+        call_count_dict = {}
+        for call_detail_monthly in previous_result:
+            call_cycle = call_detail_monthly.get("call_cycle")
+            if  call_cycle is None:
+                continue
+            call_count_dict[call_cycle] = {
+            "月通话次数":call_detail_monthly.get("total_call_count", StatusField.getNothingDefaultValue),
+            "月通话总时间":call_detail_monthly.get("total_call_time", StatusField.getNothingDefaultValue),
+            }
+        
+        return_value = call_count_dict
+        return Result(return_value, StatusField.succeed) 
+    
+    @staticmethod
+    def OtherNodesAndRelationshipsFromCallInfoParser(CallInfoList_Result):
+        previous_result = CallInfoList_Result.result
+        previous_status = CallInfoList_Result.status
+        
+        if previous_status == StatusField.failed:
+            return Result({}, previous_status)
+        
+        #主叫dict 被叫dict 其他节点set  
+        calling_relationships_dict = defaultdict(list)
+        called_relationships_dict = defaultdict(list)
+        OtherNumbersSetCollector = set()
+        for call_records_monthly in previous_result:
+            each_call_records = call_records_monthly.get("call_record", [])
+            for record in each_call_records:
+                otherNumber = record.get("call_other_number", "未知")
+                if (otherNumber is None) or (otherNumber == "未知"): 
+                    continue
+                OtherNumbersSetCollector.add(otherNumber)
+                
+                call_type_name = record.get("call_type_name", "未知")
+                one_relationships_dict = {
+                "call_address" : record.get("call_address", "未知"),
+                "call_land_type" : record.get("call_land_type", "未知"),
+                "call_start_time" : record.get("call_start_time", "未知"),
+                "call_time" : record.get("call_time", "未知"),
+                }
+                if call_type_name == "主叫":
+                    calling_relationships_dict[otherNumber].append(one_relationships_dict)
+                if call_type_name == "被叫":
+                    called_relationships_dict[otherNumber].append(one_relationships_dict)
+        return_value = (calling_relationships_dict, called_relationships_dict, OtherNumbersSetCollector)
+        return Result(return_value, StatusField.succeed) 
+
+
 class GetInfoFromCalldetail(object):
     """
     the class consists of call_detail_str json_obejct from which some inner objects are created. 
@@ -23,7 +143,6 @@ class GetInfoFromCalldetail(object):
          ("call_info",list, "task_data")
         ]
         
-        # i[2] is str; attrs[i[2]] is class
         def inner_get(self, defaultValue = StatusField.getNothingDefaultValue):
             try:
                 if self.context is not None:
