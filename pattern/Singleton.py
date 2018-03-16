@@ -78,7 +78,7 @@ class SingleMeta(type):
         
         print('single meta init')
         @staticmethod 
-        def __new__(cls, *names, **kwargs):
+        def __new__(cls, *args, **kwargs):
             print('single meta new')
             print(names)
             print(kwargs)
